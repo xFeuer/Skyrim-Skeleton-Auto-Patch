@@ -7,6 +7,14 @@
 #include "patch.h"
 namespace SkeletonAutoPatch
 {
+    // The library describes the first 8 bytes of a binding as two integers. They are its member path, an
+    // hkStringPtr.
+    static const char* GetMemberPath(const RE::hkbVariableBindingSet::Binding& a_binding) noexcept
+    {
+        static_assert(offsetof(RE::hkbVariableBindingSet::Binding, bindingPath) == 0);
+        static_assert(offsetof(RE::hkbVariableBindingSet::Binding, arrayElementSize) == sizeof(RE::hkStringPtr));
+        return GetStringData(*reinterpret_cast<const RE::hkStringPtr*>(std::addressof(a_binding)));
+    }
 
     void BlenderGeneratorActivateHook::Activate(RE::hkbBlenderGenerator *a_generator, const RE::hkbContext &a_context)
     {
@@ -44,7 +52,7 @@ namespace SkeletonAutoPatch
                 auto& bindings = variableBindingSet->bindings;
                 for (auto &binding : bindings)
                 {
-                    if (strcmp(GetStringData(binding.memberPath), "boneWeights") == 0)
+                    if (strcmp(GetMemberPath(binding), "boneWeights") == 0)
                     {
                         areWeightsBound = true; 
                         break; 
@@ -100,7 +108,7 @@ namespace SkeletonAutoPatch
                 auto& bindings = variableBindingSet->bindings;
                 for (auto &binding : bindings)
                 {
-                    if (strcmp(GetStringData(binding.memberPath), "spBoneWeight") == 0)
+                    if (strcmp(GetMemberPath(binding), "spBoneWeight") == 0)
                     {
                         areWeightsBound = true; 
                         break; 

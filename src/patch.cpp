@@ -5,6 +5,17 @@
 #include "RE/H/hkbVariableInfo.h"
 namespace SkeletonAutoPatch
 {
+    // Where this file reads hkbCharacterData. Until the library named these members, the same addresses
+    // were reached by pointer arithmetic from other members.
+    static_assert(offsetof(RE::hkbCharacterData, characterPropertyValues) == 0x80);
+    static_assert(offsetof(RE::hkbCharacterData, stringData) == 0x98);
+    static_assert(offsetof(RE::hkbCharacterData, mirroredSkeletonInfo) == 0xA0);
+
+    // The library keeps the arrays of hkbVariableValueSet private. The variants are the last of the three.
+    using VariantArray = RE::hkArray<RE::hkRefVariant>;
+    constexpr std::ptrdiff_t variantsOffset = 0x30;
+    static_assert(sizeof(RE::hkbVariableValueSet) == variantsOffset + sizeof(VariantArray));
+
     bool Patcher::PatchBoneWeights(RE::hkbCharacter *a_character, RE::hkbBoneWeightArray *a_array)
     {
         if (!a_character)
@@ -26,7 +37,7 @@ namespace SkeletonAutoPatch
             return false;
         }
 
-        auto* mirroredSkeletonInfo = stl::adjust_pointer<RE::hkRefPtr<RE::hkbMirroredSkeletonInfo>>(&data->stringData, 0x8)->get(); 
+        auto* mirroredSkeletonInfo = data->mirroredSkeletonInfo.get();
         if (!mirroredSkeletonInfo)
         {
             return false;
@@ -64,7 +75,7 @@ namespace SkeletonAutoPatch
             return false;
         }
 
-        auto* mirroredSkeletonInfo = stl::adjust_pointer<RE::hkRefPtr<RE::hkbMirroredSkeletonInfo>>(&a_data->stringData, 0x8)->get(); 
+        auto* mirroredSkeletonInfo = a_data->mirroredSkeletonInfo.get();
         if (!mirroredSkeletonInfo)
         {
             return false;
@@ -90,12 +101,12 @@ namespace SkeletonAutoPatch
             bonePairMap.push_back(i);
         }
 
-        auto variableValueSet = stl::adjust_pointer<RE::hkRefPtr<RE::hkbVariableValueSet>>(&a_data->characterControllerSetup, 0x70)->get();
+        auto variableValueSet = a_data->characterPropertyValues.get();
         if (!variableValueSet)
         {
             return false;
         }
-        auto& variants = variableValueSet->variantVariableValues;
+        auto& variants = *stl::adjust_pointer<VariantArray>(variableValueSet, variantsOffset);
         for(int i = 0; i < variants.size(); i++)
         {
             auto& variant = variants[i];
