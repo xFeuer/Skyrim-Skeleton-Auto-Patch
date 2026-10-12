@@ -1,4 +1,5 @@
 #include "patch.h"
+#include "hkstring.h"
 #include "RE/H/hkbVariableValueSet.h"
 #include "RE/H/hkClass.h"
 #include "RE/H/hkbVariableInfo.h"
@@ -41,7 +42,7 @@ namespace SkeletonAutoPatch
             auto stringData = data->stringData;
             if (stringData)
             {
-                auto characterName = stringData->name.c_str();
+                auto characterName = GetStringData(stringData->name);
                 if (characterName && characterName[0] != '\0')
                 {
                     if ( (strcmpi(characterName, "FirstPerson") == 0))

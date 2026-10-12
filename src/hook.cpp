@@ -3,6 +3,7 @@
 #include "RE/H/hkbBoneWeightArray.h"
 #include "RE/H/hkClass.h"
 #include "RE/H/hkbVariableBindingSet.h"
+#include "hkstring.h"
 #include "patch.h"
 namespace SkeletonAutoPatch
 {
@@ -24,7 +25,7 @@ namespace SkeletonAutoPatch
                 auto stringData = data->stringData;
                 if (stringData)
                 {
-                    auto characterName = stringData->name.c_str();
+                    auto characterName = GetStringData(stringData->name);
                     if (characterName && characterName[0] != '\0' && (strcmpi(characterName, "FirstPerson") == 0))
                     {
                         SKSE::log::info("Skipping Bone Switch Generator Activate for FirstPerson");
@@ -43,7 +44,7 @@ namespace SkeletonAutoPatch
                 auto& bindings = variableBindingSet->bindings;
                 for (auto &binding : bindings)
                 {
-                    if (strcmp(binding.memberPath.c_str(), "boneWeights") == 0)
+                    if (strcmp(GetStringData(binding.memberPath), "boneWeights") == 0)
                     {
                         areWeightsBound = true; 
                         break; 
@@ -58,7 +59,7 @@ namespace SkeletonAutoPatch
             if (!bone_weights) { continue; }
             if (Patcher::PatchBoneWeights(character, bone_weights))
             {
-                auto nodeName = a_generator->name.c_str();
+                auto nodeName = GetStringData(a_generator->name);
                 if (nodeName && nodeName[0] != '\0')
                 {
                     SKSE::log::info("Patched child of {}", nodeName);
@@ -81,7 +82,7 @@ namespace SkeletonAutoPatch
                 auto stringData = data->stringData;
                 if (stringData)
                 {
-                    auto characterName = stringData->name.c_str();
+                    auto characterName = GetStringData(stringData->name);
                     if (characterName && characterName[0] != '\0' && (strcmpi(characterName, "FirstPerson") == 0))
                     {
                         SKSE::log::info("Skipping Bone Switch Generator Activate for FirstPerson");
@@ -99,7 +100,7 @@ namespace SkeletonAutoPatch
                 auto& bindings = variableBindingSet->bindings;
                 for (auto &binding : bindings)
                 {
-                    if (strcmp(binding.memberPath.c_str(), "spBoneWeight") == 0)
+                    if (strcmp(GetStringData(binding.memberPath), "spBoneWeight") == 0)
                     {
                         areWeightsBound = true; 
                         break; 
@@ -115,7 +116,7 @@ namespace SkeletonAutoPatch
 
             if (Patcher::PatchBoneWeights(character, bone_weights))
             {
-                auto nodeName = a_generator->name.c_str();
+                auto nodeName = GetStringData(a_generator->name);
                 if (nodeName && nodeName[0] != '\0')
                 {
                     SKSE::log::info("Patched child of {}", nodeName);
@@ -198,7 +199,7 @@ namespace SkeletonAutoPatch
         {
             return result;
         }
-        auto *animationFilename = animationBundleNames[bindingIndex].data();
+        auto *animationFilename = GetStringData(animationBundleNames[bindingIndex]);
         SKSE::log::info("Animation {}, Queued animations {}, Loaded animations {} Result {}", animationFilename, a_animationFileManager->queuedAnimations.size(), a_animationFileManager->loadedAnimations.size(), result);
 
         if (a_clipGenerator->userData != 0xC)
@@ -246,7 +247,7 @@ namespace SkeletonAutoPatch
         {
             return result;
         }
-        auto *animationFilename = animationBundleNames[bindingIndex].data();
+        auto *animationFilename = GetStringData(animationBundleNames[bindingIndex]);
         SKSE::log::info("Unloaded animation {}, Queued animations {}, Loaded animations {} Result {}", animationFilename, a_animationFileManager->queuedAnimations.size(), a_animationFileManager->loadedAnimations.size(), result);
         return result;
     }
