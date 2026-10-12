@@ -1,0 +1,3 @@
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./SHA256SUMS.txt
+aebc2cd1220b8e0577b56f0a185a15c9f76803b5fa27bb74306b03f7f8974903  ./SKSE/Plugins/SkeletonAutoPatch.dll
+4c763d64f4eef15a79ab68740e69a07a69fa54aab2e23aedaf93865a7eb8f7f9  ./SKSE/Plugins/SkeletonAutoPatch.pdb
