@@ -1,0 +1,68 @@
+name: build
+
+# Builds SkeletonAutoPatch.dll for Skyrim SE / AE, including AE 1.7.x (Address Library format 5).
+#
+# CommonLibSSE-NG (lib/commonlibsse-ng) needs xmake 3.
+#
+# Result: an artifact whose root is a mod root (SKSE/Plugins/SkeletonAutoPatch.dll + .pdb), so the
+# downloaded zip can be installed with a mod manager on top of the original mod.
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  XMAKE_VERSION: 3.1.1
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Show the pinned revisions
+        run: |
+          git log --oneline -1
+          git -C lib/commonlibsse-ng log --oneline -1
+
+      - name: Install xmake
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/xmake.zip" \
+            "https://github.com/xmake-io/xmake/releases/download/v$XMAKE_VERSION/xmake-v$XMAKE_VERSION.win64.zip"
+          unzip -qo "$RUNNER_TEMP/xmake.zip" -d "$RUNNER_TEMP/xmake"
+          echo "$RUNNER_TEMP/xmake/xmake" >> "$GITHUB_PATH"
+
+      - name: Build the plugin
+        run: |
+          set -euo pipefail
+          xmake --version
+          xmake f -y -p windows -a x64 -m releasedbg
+          xmake build -y
+          ls -l build/windows/x64/releasedbg/
+
+      - name: Stage as an installable mod
+        run: |
+          set -euo pipefail
+          mkdir -p dist/SKSE/Plugins
+          cp build/windows/x64/releasedbg/SkeletonAutoPatch.dll dist/SKSE/Plugins/
+          # the symbol file is optional: it lets a crash logger print function names for this DLL
+          if [ -f build/windows/x64/releasedbg/SkeletonAutoPatch.pdb ]; then
+            cp build/windows/x64/releasedbg/SkeletonAutoPatch.pdb dist/SKSE/Plugins/
+          fi
+          sha256sum dist/SKSE/Plugins/SkeletonAutoPatch.dll
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SkeletonAutoPatch-skyrim-1.7
+          path: dist
+          if-no-files-found: error
